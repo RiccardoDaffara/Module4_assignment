@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Medical Records</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<header>
+    <h1>Medical Records</h1>
+</header>
+<div class="container">
+    <section id="form-section">
+        <h2>Create Patient</h2>
+        <form id="create-patient-form">
+            <label for="first_name">First Name:</label>
+            <input type="text" id="first_name" name="first_name">
+            <label for="last_name">Last Name:</label>
+            <input type="text" id="last_name" name="last_name">
+            <label for="date_of_birth">Date of Birth:</label>
+            <input type="date" id="date_of_birth" name="date_of_birth">
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+            <label for="contact_number">Contact Number:</label>
+            <input type="tel" id="contact_number" name="contact_number">
+            <button type="submit">Create Patient</button>
+        </form>
+    </section>
+    <section id="results-section">
+        <h2>Search Patients</h2>
+        <label for="searchParam">Search by First Name:</label>
+        <input type="text" id="searchParam" placeholder="Search by First Name">
+        <button id="searchButton">Search</button>
+        <button id="delete-patient-button">Delete Patient</button>
+        <button id="modify-patient-button">Modify Patient</button>
+        <h2>Results</h2>
+        <div id="results"></div>
+    </section>
+    <section id="modify-patient-section">
+        <h2>Modify Patient</h2>
+        <form id="modify-patient-form">
+            <input type="hidden" id="patientId" name="patientId">
+            <label for="modified_first_name">First Name:</label>
+            <input type="text" id="modified_first_name" name="modified_first_name">
+            <label for="modified_last_name">Last Name:</label>
+            <input type="text" id="modified_last_name" name="modified_last_name">
+            <label for="modified_date_of_birth">Date of Birth:</label>
+            <input type="date" id="modified_date_of_birth" name="modified_date_of_birth">
+            <label for="modified_gender">Gender:</label>
+            <select id="modified_gender" name="modified_gender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+            <label for="modified_contact_number">Contact Number:</label>
+            <input type="tel" id="modified_contact_number" name="modified_contact_number">
+            <button type="submit">Update Patient</button>
+        </form>
+    </section>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
