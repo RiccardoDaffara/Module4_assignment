@@ -1,11 +1,16 @@
+// knexfile.js
+
 module.exports = {
     development: {
         client: 'pg',
         connection: {
             host: 'localhost',
+            database: 'assignement 4',
             user: 'postgres',
             password: 'admin',
-            database: 'assignement 4',
+        },
+        migrations: {
+            tableName: 'knex_migrations',
         },
     },
 };

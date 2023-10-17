@@ -1,136 +1,164 @@
-// Create Patient Form
-const createPatientForm = document.getElementById('create-patient-form');
-createPatientForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(createPatientForm);
-    const response = await fetch('/patients', {
-        method: 'POST',
-        body: JSON.stringify(Object.fromEntries(formData)),
-        headers: {
-            'Content-Type': 'application/json',
-        },
+document.addEventListener('DOMContentLoaded', () => {
+    // Select the form and HTML elements
+    const createPatientForm = document.getElementById('createPatientForm');
+    const retrievePatientsButton = document.getElementById('retrievePatientsButton');
+    const patientListUl = document.getElementById('patientListUl');
+    const updatePatientResult = document.getElementById('updatePatientResult');
+    const deletePatientButton = document.getElementById('deletePatientButton');
+    const deletePatientResult = document.getElementById('deletePatientResult');
+
+    // Add a submit event listener to the form
+    createPatientForm.addEventListener('submit', (e) => {
+        e.preventDefault(); // Prevent the default form submission
+
+        // Get input values
+        const first_name = document.getElementById('first_name').value;
+        const last_name = document.getElementById('last_name').value;
+        const dobInput = document.getElementById('date_of_birth');
+        const date_of_birth = formatDate(dobInput.value); // Convert the date format
+        const gender = document.getElementById('gender').value;
+        const contact_number = document.getElementById('contact_number').value;
+
+        // Create a data object to send in the POST request
+        const data = {
+            first_name,
+            last_name,
+            date_of_birth,
+            gender,
+            contact_number,
+        };
+
+        // Send a POST request to the /patients route
+        fetch('/patients', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+            .then((response) => response.json())
+            .then((newPatient) => {
+                // Update the HTML to display the newly created patient
+                const li = document.createElement('li');
+                li.textContent = `Patient ID: ${newPatient.patient_id}, First Name: ${newPatient.first_name}, Last Name: ${newPatient.last_name}, DOB: ${newPatient.date_of_birth}, Gender: ${newPatient.gender}, Contact Number: ${newPatient.contact_number}`;
+                patientListUl.appendChild(li); // Append to the patient list
+
+                // Clear the form inputs
+                createPatientForm.reset();
+            })
+            .catch((error) => console.error('Error:', error));
     });
-    const data = await response.json();
-    displayPatientData(data);
-    createPatientForm.reset(); // Clear the form after submission
-});
 
-// Search Patients
-const searchButton = document.getElementById('searchButton');
-const searchParamInput = document.getElementById('searchParam');
-searchButton.addEventListener('click', async () => {
-    const searchParam = searchParamInput.value;
-    const response = await fetch(`/patients?searchParam=${searchParam}`);
-    const data = await response.json();
-    displayPatientData(data);
-});
+    // Retrieve a specific patient by First and Last Name
+    retrievePatientsButton.addEventListener('click', () => {
+        const firstName = document.getElementById('retrievePatientFirstName').value;
+        const lastName = document.getElementById('retrievePatientLastName').value;
 
-// Function to display patient data
-function displayPatientData(data) {
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = ''; // Clear previous results
+        // Send a GET request to retrieve the specific patient by First and Last Name
+        fetch(`/patients?firstName=${firstName}&lastName=${lastName}`)
+            .then((response) => {
+                if (response.status === 404) {
+                    return Promise.reject('Patient not found');
+                }
+                return response.json();
+            })
+            .then((patient) => {
+                // Clear the existing patient list
+                patientListUl.innerHTML = '';
 
-    if (Array.isArray(data)) {
-        if (data.length === 0) {
-            resultsDiv.textContent = 'No patients found.';
-        } else {
-            data.forEach((patient) => {
-                displayIndividualPatient(resultsDiv, patient);
+                // Display the retrieved patient data
+                const li = document.createElement('li');
+                li.innerHTML = `
+                <strong>Patient ID:</strong> ${patient.patient_id}<br>
+                <strong>First Name:</strong> ${patient.first_name}<br>
+                <strong>Last Name:</strong> ${patient.last_name}<br>
+                <strong>Date of Birth:</strong> ${formatDate(patient.date_of_birth)}<br>
+                <strong>Gender:</strong> ${patient.gender}<br>
+                <strong>Contact Number:</strong> ${patient.contact_number}
+            `;
+                patientListUl.appendChild(li);
+            })
+            .catch((error) => {
+                if (error === 'Patient not found') {
+                    console.error('Patient not found');
+                    patientListUl.innerHTML = 'Patient not found';
+                } else {
+                    console.error('Error:', error);
+                }
             });
-        }
-    } else {
-        displayIndividualPatient(resultsDiv, data);
-    }
-}
-
-// Function to display an individual patient's data
-function displayIndividualPatient(resultsDiv, patient) {
-    const patientInfo = document.createElement('div');
-    patientInfo.className = 'patient-info';
-    patientInfo.innerHTML = `
-        <p><strong>Name:</strong> ${patient.first_name} ${patient.last_name}</p>
-        <p><strong>Date of Birth:</strong> ${patient.date_of_birth}</p>
-        <p><strong>Gender:</strong> ${patient.gender}</p>
-        <p><strong>Contact Number:</strong> ${patient.contact_number}</p>
-        <button class="modify-button" data-id="${patient.patient_id}">Modify</button>
-        <button class="delete-button" data-id="${patient.patient_id}">Delete</button>
-    `;
-    resultsDiv.appendChild(patientInfo);
-
-    // Add event listeners for Modify and Delete buttons
-    const modifyButtons = resultsDiv.getElementsByClassName('modify-button');
-    for (const button of modifyButtons) {
-        button.addEventListener('click', () => {
-            const patientId = button.getAttribute('data-id');
-            modifyPatientForm.style.display = 'block';
-            populateModifyForm(patientId);
-        });
-    }
-
-    const deleteButtons = resultsDiv.getElementsByClassName('delete-button');
-    for (const button of deleteButtons) {
-        button.addEventListener('click', () => {
-            const patientId = button.getAttribute('data-id');
-            deletePatient(patientId);
-        });
-    }
-}
-
-// Modify Patient Form
-const modifyPatientForm = document.getElementById('modify-patient-form');
-modifyPatientForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const patientId = document.getElementById('patientId').value;
-    const modifiedData = new FormData(modifyPatientForm);
-    const response = await fetch(`/patients/${patientId}`, {
-        method: 'PUT',
-        body: JSON.stringify(Object.fromEntries(modifiedData)),
-        headers: {
-            'Content-Type': 'application/json',
-        },
     });
-    const data = await response.json();
-    if (data.success) {
-        modifyPatientForm.style.display = 'none';
-        searchButton.click(); // Refresh the search results after modification
-    }
-});
 
-// Populate Modify Form with Patient Data
-function populateModifyForm(patientId) {
-    modifyPatientForm.style.display = 'block';
-    const patientInfo = document.getElementById('results').getElementsByClassName('patient-info');
-    for (const info of patientInfo) {
-        const id = info.getElementsByTagName('button')[0].getAttribute('data-id');
-        if (id === patientId) {
-            const name = info.getElementsByTagName('p')[0].textContent.split(': ')[1].split(' ');
-            const dateOfBirth = info.getElementsByTagName('p')[1].textContent.split(': ')[1];
-            const gender = info.getElementsByTagName('p')[2].textContent.split(': ')[1];
-            const contactNumber = info.getElementsByTagName('p')[3].textContent.split(': ')[1];
-            document.getElementById('patientId').value = patientId;
-            document.getElementById('modified_first_name').value = name[0];
-            document.getElementById('modified_last_name').value = name[1];
-            document.getElementById('modified_date_of_birth').value = dateOfBirth;
-            document.getElementById('modified_gender').value = gender;
-            document.getElementById('modified_contact_number').value = contactNumber;
-            break;
-        }
-    }
-}
 
-// Delete a patient
-function deletePatient(patientId) {
-    const confirmDelete = confirm('Are you sure you want to delete this patient?');
-    if (confirmDelete) {
+    // Update a patient by ID
+    const updatePatientForm = document.getElementById('updatePatientForm');
+
+    updatePatientForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const patientId = document.getElementById('updatePatientId').value;
+        const firstName = document.getElementById('updateFirstName').value;
+        const lastName = document.getElementById('updateLastName').value;
+        const dateOfBirth = document.getElementById('updateDateOfBirth').value;
+        const contact = document.getElementById('updateContact').value;
+        const gender = document.getElementById('updateGender').value;
+
+        const data = {
+            first_name: firstName,
+            last_name: lastName,
+            date_of_birth: dateOfBirth,
+            contact_number: contact,
+            gender: gender,
+        };
+
+        // Send a PUT request to update the patient
+        fetch(`/patients/${patientId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+            .then((response) => response.json())
+            .then(() => {
+                updatePatientResult.textContent = 'Patient updated successfully';
+                updatePatientForm.reset();
+            })
+            .catch((error) => console.error('Error:', error));
+    });
+
+    // Delete a patient
+    deletePatientButton.addEventListener('click', () => {
+        const patientId = document.getElementById('deletePatientId').value;
+
+        // Send a DELETE request to delete the patient
         fetch(`/patients/${patientId}`, {
             method: 'DELETE',
         })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.success) {
-                    searchButton.click(); // Refresh the search results after deletion
+            .then((response) => {
+                if (response.status === 404) {
+                    return Promise.reject('Patient not found');
                 }
+                return response.json();
             })
-            .catch((error) => console.error('Error deleting patient: ', error));
-    }
+            .then(() => {
+                deletePatientResult.textContent = 'Patient deleted successfully';
+            })
+            .catch((error) => {
+                if (error === 'Patient not found') {
+                    console.error('Patient not found');
+                    deletePatientResult.textContent = 'Patient not found';
+                } else {
+                    console.error('Error:', error);
+                }
+            });
+    });
+});
+
+// Function to format date as yyyy/mm/dd
+function formatDate(inputDate) {
+    const date = new Date(inputDate);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
