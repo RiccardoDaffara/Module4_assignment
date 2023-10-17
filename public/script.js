@@ -36,7 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             body: JSON.stringify(data),
         })
-            .then((response) => response.json())
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Error creating patient');
+                }
+                return response.json();
+            })
             .then((newPatient) => {
                 // Update the HTML to display the newly created patient
                 const li = document.createElement('li');
@@ -45,47 +50,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Clear the form inputs
                 createPatientForm.reset();
+
+                // Update the result message
+                const createPatientResult = document.getElementById('createPatientResult');
+                createPatientResult.textContent = 'Patient created successfully';
             })
             .catch((error) => console.error('Error:', error));
     });
 
-    // Retrieve a specific patient by First and Last Name
-    retrievePatientsButton.addEventListener('click', () => {
+    retrievePatientsButton.addEventListener('click', async () => {
         const firstName = document.getElementById('retrievePatientFirstName').value;
         const lastName = document.getElementById('retrievePatientLastName').value;
 
-        // Send a GET request to retrieve the specific patient by First and Last Name
-        fetch(`/patients?firstName=${firstName}&lastName=${lastName}`)
-            .then((response) => {
-                if (response.status === 404) {
-                    return Promise.reject('Patient not found');
-                }
-                return response.json();
-            })
-            .then((patient) => {
-                // Clear the existing patient list
-                patientListUl.innerHTML = '';
+        try {
+            // Send a GET request to retrieve patients by First and Last Name
+            const response = await fetch(`/patients?firstName=${firstName}&lastName=${lastName}`);
 
-                // Display the retrieved patient data
-                const li = document.createElement('li');
-                li.innerHTML = `
-                <strong>Patient ID:</strong> ${patient.patient_id}<br>
-                <strong>First Name:</strong> ${patient.first_name}<br>
-                <strong>Last Name:</strong> ${patient.last_name}<br>
-                <strong>Date of Birth:</strong> ${formatDate(patient.date_of_birth)}<br>
-                <strong>Gender:</strong> ${patient.gender}<br>
-                <strong>Contact Number:</strong> ${patient.contact_number}
-            `;
-                patientListUl.appendChild(li);
-            })
-            .catch((error) => {
-                if (error === 'Patient not found') {
+            if (!response.ok) {
+                // Handle errors
+                if (response.status === 404) {
                     console.error('Patient not found');
                     patientListUl.innerHTML = 'Patient not found';
                 } else {
-                    console.error('Error:', error);
+                    console.error('Error fetching patient data');
+                    patientListUl.innerHTML = 'Error fetching patient data';
                 }
-            });
+            } else {
+                const patients = await response.json();
+
+                // Clear the existing patient list
+                patientListUl.innerHTML = '';
+
+                if (Array.isArray(patients) && patients.length > 0) {
+                    // Display the retrieved patients' data
+                    patients.forEach(patient => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                        <strong>Patient ID:</strong> ${patient.patient_id}<br>
+                        <strong>First Name:</strong> ${patient.first_name}<br>
+                        <strong>Last Name:</strong> ${patient.last_name}<br>
+                        <strong>Date of Birth:</strong> ${formatDate(patient.date_of_birth)}<br>
+                        <strong>Gender:</strong> ${patient.gender}<br>
+                        <strong>Contact Number:</strong> ${patient.contact_number}
+                    `;
+                        patientListUl.appendChild(li);
+                    });
+                } else {
+                    console.error('No patients found');
+                    patientListUl.innerHTML = 'No patients found';
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
     });
 
 

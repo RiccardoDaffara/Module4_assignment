@@ -82,9 +82,6 @@ button:hover {
 /* Patient List Styles */
 .patient-list {
     background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 15px;
     margin-bottom: 20px;
 }
@@ -93,6 +90,11 @@ button:hover {
     list-style-type: none;
     padding: 0;
 }
+
+.patient-list ul li {
+    margin-bottom: 20px; /* Adjust the value to control the spacing */
+}
+
 
 /* Additional CSS */
 

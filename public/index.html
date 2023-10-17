@@ -45,14 +45,15 @@
         </div>
         <button type="submit">Create</button>
     </form>
+    <div id="createPatientResult"></div>
 
     <!-- Patient List -->
     <div id="patientList" class="patient-list">
         <h2>Retrieve Patients</h2>
         <br>
-        <ul id="patientListUl"></ul>
+        <ul id="patientListUl" class="patient-list"> <!-- Add the "patient-list" class here -->
+        </ul>
         <br>
-    <!-- Retrieve Patients Form -->
         <label for="retrievePatientFirstName">First Name:</label>
         <input type="text" id="retrievePatientFirstName" required>
         <label for="retrievePatientLastName">Last Name:</label>
@@ -60,6 +61,8 @@
         <br>
         <button id="retrievePatientsButton">Retrieve Patient</button>
     </div>
+
+
 
     <!-- Update Patient Form -->
     <form id="updatePatientForm" class="patient-form">
@@ -71,15 +74,15 @@
         </div>
         <div class="form-group">
             <label for="updateFirstName">New First Name:</label>
-            <input type="text" id="updateFirstName">
+            <input type="text" id="updateFirstName" required>
         </div>
         <div class="form-group">
             <label for="updateLastName">New Last Name:</label>
-            <input type="text" id="updateLastName">
+            <input type="text" id="updateLastName" required>
         </div>
         <div class="form-group">
             <label for="updateDateOfBirth">New Date of Birth:</label>
-            <input type="date" id="updateDateOfBirth">
+            <input type="date" id="updateDateOfBirth" required>
         </div>
         <div class="form-group">
             <label for="updateContact">New Contact Number:</label>
@@ -87,7 +90,7 @@
         </div>
         <div class="form-group">
             <label for="updateGender">New Gender:</label>
-            <select id="updateGender" name="gender">
+            <select id="updateGender" name="gender" required>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
